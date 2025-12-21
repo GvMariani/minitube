@@ -16,6 +16,7 @@ Source0:	https://github.com/flaviotordini/minitube/releases/download/%{version}/
 Patch0:		minitube-use-system-qtsingleapplication.patch
 Patch1:		fix-build-with-mpv035.patch
 
+BuildRequires:	make
 BuildRequires:	pkgconfig(Qt5Core)
 BuildRequires:	pkgconfig(Qt5Network)
 BuildRequires:	pkgconfig(Qt5Widgets)
