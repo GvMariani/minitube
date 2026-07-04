@@ -21,7 +21,7 @@ BuildRequires:		qmake-qt6
 BuildRequires:		qt6-qttools-linguist
 BuildRequires:		qt6-qttools
 BuildRequires:		pkgconfig(libvlc)
-BuildRequires:		pkgconfig(mvp)
+BuildRequires:		pkgconfig(mpv)
 BuildRequires:		pkgconfig(phonon4qt6)
 BuildRequires:		pkgconfig(Qt6Core)
 BuildRequires:		pkgconfig(Qt6DBus)
