@@ -5,71 +5,74 @@
 # For your own builds, please get your own set of keys.
 %define    google_api_key AIzaSyDlD0VWLAKJn_2zjq4X70wDy8Ra7YIIuoM
 
+Summary:		A native YouTube client
 Name:		minitube
-Version:	3.9.3
-Release:	2
-Summary:	A native YouTube client
+Version:		4.0
+Release:		1
 Group:		Video/Players
-License:	GPLv3+
-URL:		https://flavio.tordini.org/minitube
+License:		GPLv3+
+Url:		https://flavio.tordini.org/minitube
 Source0:	https://github.com/flaviotordini/minitube/releases/download/%{version}/%{name}-%{version}.tar.bz2
-Patch0:		minitube-use-system-qtsingleapplication.patch
-Patch1:		fix-build-with-mpv035.patch
-
-BuildRequires:	make
-BuildRequires:	pkgconfig(Qt5Core)
-BuildRequires:	pkgconfig(Qt5Network)
-BuildRequires:	pkgconfig(Qt5Widgets)
-BuildRequires:	pkgconfig(Qt5Sql)
-BuildRequires:	pkgconfig(Qt5Qml)
-BuildRequires:	pkgconfig(Qt5X11Extras)
-BuildRequires:	pkgconfig(phonon4qt5)
-BuildRequires:	qt5-qttools
-BuildRequires:	pkgconfig(libvlc)
-BuildRequires:	pkgconfig(mpv)
-BuildRequires:  pkgconfig(tgvoip)
-BuildRequires:	qtsingleapplication-qt5-devel
-BuildRequires:	qt5-linguist-tools
-# minitube no longer supports anything other than the vlc phonon.
-Requires:	phonon4qt5-vlc
+Patch0:		minitube-4.0-fix-mpvwidget.patch
+#Patch1:		fix-build-with-mpv035.patch
+BuildRequires:		desktop-file-utils
+BuildRequires:		make
+BuildRequires:		qmake-qt6
+BuildRequires:		qt6-qttools-linguist
+BuildRequires:		qt6-qttools
+BuildRequires:		pkgconfig(libvlc)
+BuildRequires:		pkgconfig(mvp)
+BuildRequires:		pkgconfig(phonon4qt6)
+BuildRequires:		pkgconfig(Qt6Core)
+BuildRequires:		pkgconfig(Qt6DBus)
+BuildRequires:		pkgconfig(Qt6Gui)
+BuildRequires:		pkgconfig(Qt6Network)
+BuildRequires:		pkgconfig(Qt6Qml)
+BuildRequires:		pkgconfig(Qt6Sql)
+BuildRequires:		pkgconfig(Qt6Widgets)
+BuildRequires:		pkgconfig(tgvoip)
+# Minitube no longer supports anything other than the vlc phonon.
+Requires:	phonon4qt6-vlc
 Requires:	vlc-plugin-gnutls
 Requires:	qt5-database-plugin-sqlite
 
 %description
-Minitube is a native YouTube client. With it you can watch YouTube videos in
-a new way: you type a keyword, Minitube gives you an endless video stream.
-Minitube does not require the Flash Player.
+This is a native YouTube client. With it you can watch YouTube videos in a new
+way: you type a keyword, the program gives you an endless video stream.
+It does not require the Flash Player and it strives to create a new TV-like
+experience. It is not about cloning the original Youtube web interface.
 
-Minitube is not about cloning the original Youtube web interface, it strives
-to create a new TV-like experience.
+%files
+%doc TODO CHANGES AUTHORS
+%{_bindir}/%{name}
+%{_datadir}/%{name}/
+%{_datadir}/metainfo/org.tordini.flavio.%{name}.metainfo.xml
+%{_datadir}/applications/%{name}.desktop
+%{_iconsdir}/hicolor/*/apps/%{name}.*
+
+#-----------------------------------------------------------------------------
 
 %prep
 %autosetup -p1
 
-# more debug msgs
+# More debug msgs
 sed -i -e '/QT_NO_DEBUG_OUTPUT/d' minitube.pro
 
-# remove bundled qtsingleapplication
-rm -r src/qtsingleapplication
+# Remove bundled qtsingleapplication: we use the system one
+#rm -r src/qtsingleapplication
+
 
 %build
-%qmake_qt5 \
+#USE_SYSTEM_QTSINGLEAPPLICATION=1 \
+%set_build_flags
+qmake-qt6 \
 	PREFIX=%{_prefix} \
-	USE_SYSTEM_QTSINGLEAPPLICATION=1 \
 	DEFINES+=APP_GOOGLE_API_KEY=%{google_api_key}
 %make_build
+
 
 %install
 %make_install INSTALL_ROOT=%{buildroot}
 
-# fix .desktop file
-desktop-file-edit \
-	%{buildroot}%{_datadir}/applications/%{name}.desktop
-
-%files
-%doc TODO CHANGES AUTHORS
-%{_bindir}/minitube
-%{_datadir}/minitube/
-%{_datadir}/metainfo/org.tordini.flavio.minitube.metainfo.xml
-%{_datadir}/applications/minitube.desktop
-%{_iconsdir}/hicolor/*/apps/minitube.*
+# Fix .desktop file
+desktop-file-edit --remove-category="Network" %{buildroot}%{_datadir}/applications/%{name}.desktop

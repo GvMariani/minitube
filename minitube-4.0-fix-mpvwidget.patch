@@ -1,0 +1,68 @@
+diff -rupN minitube-4.0.old/lib/media/src/mpv/mpvwidget.cpp minitube-4.0/lib/media/src/mpv/mpvwidget.cpp
+--- minitube-4.0.old/lib/media/src/mpv/mpvwidget.cpp	2024-08-10 10:32:34.000000000 +0200
++++ minitube-4.0/lib/media/src/mpv/mpvwidget.cpp	2026-07-04 17:46:35.628943008 +0200
+@@ -41,38 +41,33 @@ void MpvWidget::initializeGL() {
+     #else
+       mpv_opengl_init_params gl_init_params{get_proc_address, this};
+     #endif
+-    mpv_render_param params[]{{MPV_RENDER_PARAM_API_TYPE, (void *)MPV_RENDER_API_TYPE_OPENGL},
+-                              {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
+-                              {MPV_RENDER_PARAM_INVALID, nullptr},
+-                              {MPV_RENDER_PARAM_INVALID, nullptr}};
++	  
++    mpv_render_param render_display{MPV_RENDER_PARAM_INVALID, nullptr};
+ 
+-#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+-    bool isPlatformX11 = false;
+-    bool isPlatformWayland = false;
+-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+-    Display *display = QX11Info::display();
+-    isPlatformX11 = QX11Info::isPlatformX11();
+-    #else
+-        Display *display = nullptr;
+-        if (auto *ni = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
+-            display = ni->display();
+-            isPlatformX11 = true;
+-        }
+-    #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+-        else if (auto *ni = qGuiApp->nativeInterface<QNativeInterface::QWaylandApplication>()) {
+-            display = ni->display();
+-            isPlatformWayland = true;
+-        }
+-    #endif
+-    #endif
+-    if (isPlatformX11) {
+-        params[2].type = MPV_RENDER_PARAM_X11_DISPLAY;
+-        params[2].data = (void *)display;
+-    } else if (isPlatformWayland) {
+-        params[2].type = MPV_RENDER_PARAM_WL_DISPLAY;
+-        params[2].data = (void *)display;
+-    }
+-#endif
++	#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
++	
++			#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
++	
++			render_display.type = MPV_RENDER_PARAM_X11_DISPLAY;
++			render_display.data = (void *)QX11Info::display();
++			#else
++			if (auto *ni = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
++				render_display.type = MPV_RENDER_PARAM_X11_DISPLAY;
++				render_display.data = (void *)ni->display();
++			}
++				#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
++			else if (auto *ni = qGuiApp->nativeInterface<QNativeInterface::QWaylandApplication>()) {
++				render_display.type = MPV_RENDER_PARAM_WL_DISPLAY;
++				render_display.data = (void *)ni->display();
++	}
++				#endif
++			#endif
++	#endif
++
++		mpv_render_param params[]{{MPV_RENDER_PARAM_API_TYPE, (void *)MPV_RENDER_API_TYPE_OPENGL},
++																{MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
++																render_display,
++																{MPV_RENDER_PARAM_INVALID, nullptr}};
+ 
+     if (mpv_render_context_create(&mpvContext, mpv, params) < 0)
+         qFatal("failed to initialize mpv GL context");
